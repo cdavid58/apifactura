@@ -103,6 +103,7 @@ class Details(models.Model):
 	price_2 = models.FloatField()
 	price_3 = models.FloatField()
 	ipo = models.FloatField()
+	ultra_processed = models.FloatField(default = 0)
 	discount = models.FloatField()
 	shopping = models.ForeignKey(Shopping, on_delete = models.CASCADE)
 
@@ -125,6 +126,7 @@ class Details(models.Model):
 			    price_2= data['price_2'],
 			    price_3= data['price_3'],
 			    ipo= data['ipo'],
+			    ultra_processed = data['ultra_processed'],
 			    discount= data['discount'],
 			    shopping= shopping
 			)
@@ -146,12 +148,13 @@ class Details(models.Model):
 		result = False
 		message = None
 		try:
-			product = Product.objects.get(code = data['code'], branch=shopping.branch)
+			product = Product.objects.get(code = data['code'], branch = shopping.branch)
 			product.tax = data['tax']
 			product.quantity += int(data['quantity'])
 			product.price_1 = data['price_1']
 			product.price_2 = data['price_2']
 			product.price_3 = data['price_3']
+			product.ultra_processed = data['ultra_processed']
 			product.ipo = data['ipo']
 			product.discount = data['discount']
 			product.save()

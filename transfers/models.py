@@ -94,6 +94,7 @@ class Details_Transfer(models.Model):
 	quantity = models.IntegerField()
 	price = models.IntegerField()
 	ipo = models.IntegerField()
+	ultra_processed = models.FloatField(default = 0)
 	discount = models.IntegerField()
 	transfer = models.ForeignKey(Transfer, on_delete = models.CASCADE)
 
@@ -134,6 +135,7 @@ class Details_Transfer(models.Model):
 				quantity = i['quantity'],
 				price = i['price_1'],
 				ipo = i['ipo'],
+				ultra_processed = 0,
 				discount = i['discount'],
 				transfer = transfer
 			).save()

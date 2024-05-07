@@ -173,16 +173,24 @@ class Product(models.Model):
 	quantity = models.IntegerField()
 	quantity_unit = models.IntegerField(default=0, null = True, blank = True)
 	bale_quantity = models.IntegerField(default=0, null = True, blank = True)
+
+	quantity_static = models.IntegerField(default=0)
+	quantity_unit_static = models.IntegerField(default=0, null = True, blank = True)
+	bale_quantity_static = models.IntegerField(default=0, null = True, blank = True)
+
 	price_1 = models.FloatField()
 	price_2 = models.FloatField()
 	price_3 = models.FloatField()
+
 	tax = models.IntegerField()
 	cost = models.FloatField()
 	ipo = models.FloatField()
+	ultra_processed = models.FloatField(default = 0)
 	discount = models.FloatField()
 	branch = models.ForeignKey(Branch, on_delete = models.CASCADE)
 	subcategory = models.ForeignKey(SubCategory, on_delete = models.CASCADE)
 	supplier = models.ForeignKey(Supplier, on_delete = models.CASCADE, null = True, blank = True)
+
 	
 
 	def __str__(self):
@@ -280,12 +288,18 @@ class Product(models.Model):
 					code= data['code'],
 				    name= data['name'],
 				    quantity= data['quantity'],
+				    quantity_unit= data['quantity_unit'],
+				    bale_quantity= data['bale_quantity'],
+				    quantity_static= data['quantity_static'],
+				    quantity_unit_static= data['quantity_unit_static'],
+				    bale_quantity_static= data['bale_quantity_static'],
 				    tax= data['tax'],
 				    cost= data['cost'],
 				    price_1= data['price_1'],
 				    price_2= data['price_2'],
 				    price_3= data['price_3'],
 				    ipo= data['ipo'],
+				    ultra_processed = data['ultra_processed'],
 				    discount= data['discount'],
 				    branch= employee.branch,
 				    subcategory= SubCategory.objects.get(pk = data['pk_subcategory']),
@@ -321,12 +335,18 @@ class Product(models.Model):
 	            product.code = data['code']
 	            product.name = data['name']
 	            product.quantity = data['quantity']
+	            product.quantity_unit = data['quantity_unit']
+	            product.bale_quantity = data['bale_quantity']
+	            product.quantity_static = data['quantity_static']
+	            product.quantity_unit_static = data['quantity_unit_static']
+	            product.bale_quantity_static = data['bale_quantity_static']
 	            product.tax = data['tax']
 	            product.cost = data['cost']
 	            product.price_1 = data['price_1']
 	            product.price_2 = data['price_2']
 	            product.price_3 = data['price_3']
 	            product.ipo = data['ipo']
+	            product.ultra_processed = data['ultra_processed']
 	            product.discount = data['discount']
 	            product.branch = branch
 	            product.subcategory = SubCategory.objects.get(pk=data['pk_subcategory'])
@@ -390,11 +410,14 @@ class Product(models.Model):
 
 	@classmethod
 	def get_list_products(cls, data):
-		branch = Employee.objects.get(pk = data['pk_employee']).branch
 		list_products = []
-		for i in cls.objects.filter(branch = branch):
-			product = serialized_employee = serializers.serialize('json', [i])
-			list_products.append(json.loads(product)[0]['fields'])
+		try:
+			branch = Employee.objects.get(pk = data['pk_employee']).branch
+			for i in cls.objects.filter(branch = branch):
+				product = serialized_employee = serializers.serialize('json', [i])
+				list_products.append(json.loads(product)[0]['fields'])
+		except Exception as e:
+			print(e)		
 		return list_products
 
 	@classmethod
@@ -409,24 +432,28 @@ class Product(models.Model):
 
 	@classmethod
 	def get_product(cls, data):
-		pk_employee = data['pk_employee']
-		branch = Employee.objects.get(pk = data['pk_employee']).branch
-		_product = cls.objects.get(branch = branch, code = data['code'])
-		product = serialized_employee = serializers.serialize('json', [_product])
-		data = json.loads(product)[0]['fields']
-		data['pk_cat'] = SubCategory.objects.get(pk = data['subcategory']).category.pk
-		data['category'] = SubCategory.objects.get(pk = data['subcategory']).category.name
-		data['pk_subcategory'] = SubCategory.objects.get(pk = data['subcategory']).pk
-		data['subcategory'] = SubCategory.objects.get(pk = data['subcategory']).name
-		data['pk_supplier'] = Supplier.objects.get(pk = data['supplier']).pk
-		data['supplier'] = Supplier.objects.get(pk = data['supplier']).name
-		data['calculate_profit_percentages'] = cls.calculate_profit_percentages_one_quantity(_product)
-		data['calculate_profit_amount'] = cls.calculate_profit_amount(_product)
-		data['pk_category'] = data['pk_cat']
-		data['list_subcategory'] = SubCategory.get_list_subcategory(data)
-		data['pk_employee'] = pk_employee
-		data['list_supplier'] = Supplier.list_supplier(data)
-		return data
+		_data = []
+		try:
+			pk_employee = data['pk_employee']
+			branch = Employee.objects.get(pk = data['pk_employee']).branch
+			_product = cls.objects.get(branch = branch, code = data['code'])
+			product = serialized_employee = serializers.serialize('json', [_product])
+			_data = json.loads(product)[0]['fields']
+			_data['pk_cat'] = SubCategory.objects.get(pk = _data['subcategory']).category.pk
+			_data['category'] = SubCategory.objects.get(pk = _data['subcategory']).category.name
+			_data['pk_subcategory'] = SubCategory.objects.get(pk = _data['subcategory']).pk
+			_data['subcategory'] = SubCategory.objects.get(pk = _data['subcategory']).name
+			_data['pk_supplier'] = Supplier.objects.get(pk = _data['supplier']).pk
+			_data['supplier'] = Supplier.objects.get(pk = _data['supplier']).name
+			_data['calculate_profit_percentages'] = cls.calculate_profit_percentages_one_quantity(_product)
+			_data['calculate_profit_amount'] = cls.calculate_profit_amount(_product)
+			_data['pk_category'] = _data['pk_cat']
+			_data['list_subcategory'] = SubCategory.get_list_subcategory(_data)
+			_data['pk_employee'] = pk_employee
+			_data['list_supplier'] = Supplier.list_supplier(_data)
+		except Exception as e:
+			print(e)		
+		return _data
 
 class Best_Selling_Product(models.Model):
 	product = models.ForeignKey(Product, on_delete = models.CASCADE)

@@ -323,6 +323,7 @@ class Details_Invoice(models.Model):
 	cost = models.FloatField()
 	price = models.FloatField()
 	ipo = models.FloatField()
+	ultra_processed = models.FloatField(default = 0)
 	discount = models.FloatField()
 	invoice = models.ForeignKey(Invoice, on_delete = models.CASCADE)
 	tax_value = models.IntegerField(default = 0, null=True, blank = True)
@@ -340,6 +341,7 @@ class Details_Invoice(models.Model):
 				cost = 0,
 				price = data['price'],
 				ipo = data['ipo'],
+				ultra_processed = 0,
 				discount = data['discount'],
 				invoice = invoice,
 				tax_value = Product.objects.get(code = data['code'], branch = invoice.branch).tax
